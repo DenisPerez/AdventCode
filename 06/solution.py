@@ -1,88 +1,73 @@
 import os
 from typing import List
 
-def solve_from_file(filename):
 
-    operations = ['-', '+', '*', '/']
-    operationList = []
+def solve_from_file(filename: str) -> int:
+    with open(filename, "r") as f:
+        lines = [line.rstrip("\n") for line in f if line.strip() != ""]
 
-    operands = []
+    if not lines:
+        return 0
 
-    rightMostOperands = []
+    width = max(len(line) for line in lines)
+    grid = [line.ljust(width) for line in lines]
 
-    solution = 0
+    height = len(grid)
+    op_row_idx = height - 1          # bottom row = operators
+    op_row = grid[op_row_idx]
 
-    firstLine = True
+    def is_separator(col: int) -> bool:
+        return all(grid[r][col] == " " for r in range(height))
 
-    with open(filename, 'r') as file:
-        lines = file.readlines()
+    total = 0
+    col = width - 1 
 
-        for idx in range(len(lines)):
+    while col >= 0:
+        ch = op_row[col]
 
-            line = lines[idx].strip().split(' ')
-            if(line[0] in operations):
-                line = list(filter(None, line))
-                idxp = 0
-                elements = len(operands[0][0])
+        if ch not in "+*":
+            col -= 1
+            continue
 
-                for idxp in range(len(line)):
-                    operands[idxp].append(line[idxp])
-                break
+        op = ch
 
-            
-            intLine = []
+        start = col
+        while start > 0 and not is_separator(start - 1):
+            start -= 1
 
-            for val in line:
-                if(val.isdigit()):
-                    intLine.append(val)
+        end = col
+        while end < width - 1 and not is_separator(end + 1):
+            end += 1
 
-            for nIdx in range(len(intLine)):
+        numbers: List[int] = []
+        for c in range(end, start - 1, -1):
+            digits = [
+                grid[r][c]
+                for r in range(op_row_idx)
+                if grid[r][c].isdigit()
+            ]
+            if digits:
+                numbers.append(int("".join(digits)))
 
-                currentVal = intLine[nIdx]
+        if not numbers:
+            col = start - 1
+            continue
 
-                if(firstLine):
-                    operands.append([[currentVal], len(currentVal)])
-                    continue
+        if op == "+":
+            value = sum(numbers)
+        elif op == "*":
+            value = 1
+            for n in numbers:
+                value *= n
 
-                operands[nIdx][0].append(currentVal)
-                operands[nIdx][1] = max(operands[nIdx][1], len(currentVal))
-            if(idx == 0 and firstLine):
-                firstLine = False
+        total += value
 
-        print(operands)
+        col = start - 1
 
-        for problem in operands:
-            solution += solve_from_problem(problem[0], problem[1], problem[2])
+    return total
 
-    print(f"Solution is: {solution}")
-
-def solve_from_problem(operandList, maxLenght, operand):
-
-    N = maxLenght if operand == '+' else maxLenght + 1
-    startVal = 0 if operand == '+' else 1
-    cutList = 1 if operand == '+' else -1
-    solution = 0 if operand == '+' else 1
-    extractedList = []
-
-    for idx in range(startVal, N):
-
-        extractedVal = ''
-
-        for s in operandList:
-            if((len(s) >= idx and operand == '*')
-               or (len(s) > idx and operand == '+')):
-                extractedVal += s[(cutList) * idx]
-        extractedList.append(int(extractedVal))
-        
-        solution = solution + int(extractedVal) if operand == '+' else solution * int(extractedVal)
-        print(extractedVal, solution)
-
-
-    print(f'{extractedList} = {solution}')
-    print(f'{'-' * 8}')
-    return solution
 
 if __name__ == "__main__":
     INPUT_FILENAME = "input.txt"
-
-    solve_from_file(INPUT_FILENAME)
+    ans = solve_from_file(INPUT_FILENAME)
+    print(f"Solution is: {ans}")
