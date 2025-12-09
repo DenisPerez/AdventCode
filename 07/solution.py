@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Tuple, Dict
 
 def writeToFile(outputFileName: str, lines: list, h: int, w: int):
     with open(outputFileName, 'w') as f:
@@ -32,34 +32,75 @@ def solve_from_file(filename: str) -> int:
 
     w, h = max(len(line) for line in lines), len(lines)
 
+    memo = {}
+    totalTimeLines = find_All_Timelines(lines, Spos, w, h, memo)
+
     queue = [(Spos[0] + 1, Spos[1])]
 
-    while len(queue) > 0:
+    # while len(queue) > 0:
 
-        currentPair = queue.pop()
-        currentR, currentC = currentPair[0], currentPair[1]
+    #     currentPair = queue.pop()
+    #     currentR, currentC = currentPair[0], currentPair[1]
 
-        if(inBound(currentR, currentC, w, h)):
+    #     if(inBound(currentR, currentC, w, h)):
 
-            nextRPosition, nextCPosition = currentR + 1, currentC
+    #         nextRPosition, nextCPosition = currentR + 1, currentC
 
-            if(inBound(nextRPosition, nextCPosition, w, h)):
-                nextValue = lines[nextRPosition][nextCPosition]
+    #         if(inBound(nextRPosition, nextCPosition, w, h)):
+    #             nextValue = lines[nextRPosition][nextCPosition]
 
-                if(nextValue == '^'):
-                    queue.append((nextRPosition, nextCPosition - 1))
-                    queue.append((nextRPosition, nextCPosition + 1))
-                    totalSplits += 1
-                elif (nextValue == '.'):
-                    queue.append((nextRPosition, nextCPosition))
-                lines[currentR][currentC] = '|'
+    #             if(nextValue == '^'):
+    #                 queue.append((nextRPosition, nextCPosition - 1))
+    #                 queue.append((nextRPosition, nextCPosition + 1))
+    #                 totalSplits += 1
+    #             elif (nextValue == '.'):
+    #                 queue.append((nextRPosition, nextCPosition))
+    #             lines[currentR][currentC] = '|'
 
-    writeToFile('output.txt', lines, h, w)
+    # writeToFile('output.txt', lines, h, w)
 
-    return totalSplits
+    return totalTimeLines
 
 def inBound(row, column, w, h) -> bool:
-    return not(row < 0 or row > w or column < 0 or column > h) 
+    return not (row < 0 or row >= h or column < 0 or column >= w)
+
+from typing import List, Tuple, Dict
+
+def find_All_Timelines(
+    lines: List[str],
+    position: Tuple[int, int],
+    w: int,
+    h: int,
+    memo: Dict[Tuple[int, int], int] | None = None,
+) -> int:
+    if memo is None:
+        memo = {}
+
+    currentX = position[0]
+    currentY = position[1]
+
+    if position in memo:
+        return memo[position]
+
+    if (not inBound(currentY, currentX, w, h) or
+        not inBound(currentY, currentX + 1, w, h)):
+        memo[position] = 1
+        return 1
+
+    nextX = currentX + 1
+    nextChar = lines[nextX][currentY]
+
+    if nextChar == '.':
+        result = find_All_Timelines(lines, (nextX, currentY), w, h, memo)
+    elif nextChar == '^':
+        left = find_All_Timelines(lines, (nextX, currentY - 1), w, h, memo)
+        right = find_All_Timelines(lines, (nextX, currentY + 1), w, h, memo)
+        result = left + right
+    else:
+        result = 0
+
+    memo[position] = result
+    return result
 
 if __name__ == "__main__":
     INPUT_FILENAME = "input.txt"
