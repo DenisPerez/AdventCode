@@ -9,7 +9,6 @@ def writeToFile(outputFileName: str, lines: list, h: int, w: int):
             f.write('\n')
 
 def solve_from_file(filename: str) -> int:
-    totalSplits = 0
     lines = []
     Spos = (-1,-1)
 
@@ -34,30 +33,6 @@ def solve_from_file(filename: str) -> int:
 
     memo = {}
     totalTimeLines = find_All_Timelines(lines, Spos, w, h, memo)
-
-    queue = [(Spos[0] + 1, Spos[1])]
-
-    # while len(queue) > 0:
-
-    #     currentPair = queue.pop()
-    #     currentR, currentC = currentPair[0], currentPair[1]
-
-    #     if(inBound(currentR, currentC, w, h)):
-
-    #         nextRPosition, nextCPosition = currentR + 1, currentC
-
-    #         if(inBound(nextRPosition, nextCPosition, w, h)):
-    #             nextValue = lines[nextRPosition][nextCPosition]
-
-    #             if(nextValue == '^'):
-    #                 queue.append((nextRPosition, nextCPosition - 1))
-    #                 queue.append((nextRPosition, nextCPosition + 1))
-    #                 totalSplits += 1
-    #             elif (nextValue == '.'):
-    #                 queue.append((nextRPosition, nextCPosition))
-    #             lines[currentR][currentC] = '|'
-
-    # writeToFile('output.txt', lines, h, w)
 
     return totalTimeLines
 
