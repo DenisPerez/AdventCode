@@ -34,16 +34,16 @@ def solve_from_file(filename: str) -> int:
             target.pop(0)
             target.pop(-1)
                 
-            joltages = lineElements.pop(-1)
+            new_target = list(map(int, re.findall(r'\d+', lineElements.pop(-1))))
 
-            targetLength = len(target)
+            targetLength = len(new_target)
 
             allowedMoves = []
 
             for e in lineElements:
                 move = [0] * targetLength
 
-                inLineMoves = list(map(int, re.findall(r'\d', e)))
+                inLineMoves = list(map(int, re.findall(r'\d+', e)))
 
                 for idx in range(targetLength):
                     move[idx] = 1 if (idx in inLineMoves) else 0
@@ -52,35 +52,43 @@ def solve_from_file(filename: str) -> int:
 
             # print(f'Target: {target}')
             # print(f'Moves: {allowedMoves}')
-            # print(f'Joltages: {joltages}')
+            # print(f'Joltages: {new_target}')
+            # print([[0] * len(new_target)])
             # print()
 
-            q = [[0] * len(target)]
+            from collections import deque
 
-            visited = []
             level = 0
             solution_find = False
+
+            start_state = tuple([0] * len(new_target))
+            q = deque([start_state])
+            visited = {start_state}
 
             while q:
                 level_size = len(q)
 
-                # print(f"Processing Level {level}: {q}")
+                # print(f"Level {level}, Queue: {q}")
 
                 for _ in range(level_size):
                     
-                    curr = q.pop(0)
+                    curr = q.popleft()
 
-                    # print(curr, target, curr == target)
-
-                    if(curr == target):
+                    if(curr == new_target):
+                        print(f"Solution found at level {level} with state {curr}")
                         solution_find = True
                         break
 
                     for move in allowedMoves:
-                        next_curr = XOR(curr, move)
+                        next_curr = SUM(curr, move)
+
+                        if(largest_than_actual_target(new_target, next_curr)):
+                            continue
+
+                        next_curr = tuple(next_curr)
 
                         if(next_curr not in visited):
-                            visited.append(next_curr)
+                            visited.add(next_curr)
                             q.append(next_curr)
 
                 if(solution_find): 
@@ -88,13 +96,19 @@ def solve_from_file(filename: str) -> int:
 
                 level += 1
 
-            # print(f"Result for target {target} is {level}")
-            # print()
+            print(f"Result for target {new_target} is {level}")
+            print()
             result += level
     return result
                 
-def XOR(A: List, B: List) -> List:
-    return [a ^ b for a,b in zip(A, B)]
+def SUM(A: List, B: List) -> List:
+    return [a + b for a,b in zip(A, B)]
+
+def largest_than_actual_target(target: List, current: List) -> bool:
+    for t, c in zip(target, current):
+        if(c > t):
+            return True
+    return False
                 
 if __name__ == "__main__":
 
