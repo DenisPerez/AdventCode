@@ -12,7 +12,7 @@ def writeToFile(outputFileName: str, lines: list, h: int, w: int):
 def solve_from_file(filename: str) -> int:
     result = 0
     graph = {}
-    start = 'you'
+    start = 'svr'
     end = 'out'
     in_degree = {}
     with open(filename, "r") as f:
@@ -36,8 +36,12 @@ def solve_from_file(filename: str) -> int:
 
             graph[node] = adj
     
-    ways = {node: 0 for node in in_degree.keys()}
-    ways[start] = 1
+    ways = {}
+
+    for node in in_degree.keys():
+        ways[node] = {'none': 0, 'dac_only': 0, 'fft_only': 0, 'both': 0}
+
+    ways[start]['none'] = 1
 
     queue = deque(d for d in graph if in_degree[d] == 0)
 
@@ -46,13 +50,28 @@ def solve_from_file(filename: str) -> int:
         node = queue.popleft()
 
         for neighbor in graph[node]:
-            ways[neighbor] += ways[node]
+            match neighbor:
+                case 'dac':
+                    ways[neighbor]['dac_only'] += ways[node]['none']
+                    ways[neighbor]['dac_only'] += ways[node]['dac_only']
+                    ways[neighbor]['both']     += ways[node]['fft_only']
+                    ways[neighbor]['both']     += ways[node]['both']
+                case 'fft':
+                    ways[neighbor]['fft_only'] += ways[node]['none']
+                    ways[neighbor]['fft_only'] += ways[node]['fft_only']
+                    ways[neighbor]['both']     += ways[node]['dac_only']
+                    ways[neighbor]['both']     += ways[node]['both']
+                case _:
+                    ways[neighbor]['none'] += ways[node]['none']
+                    ways[neighbor]['dac_only'] += ways[node]['dac_only']
+                    ways[neighbor]['fft_only'] += ways[node]['fft_only']
+                    ways[neighbor]['both'] += ways[node]['both']
             in_degree[neighbor] -= 1
             if in_degree[neighbor] == 0:
                 queue.append(neighbor)
 
-    return ways[end]
-                
+    return ways[end]['both']
+
 if __name__ == "__main__":
 
     INPUT_FILENAME = "input.txt"
